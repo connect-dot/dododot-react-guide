@@ -314,21 +314,35 @@ function useElementRect(element) {
   return rect;
 }
 var TARGET_TIMEOUT = 1e4;
-function useTargetElement(targetId, waitForTarget = true, scrollTo = true) {
+function useTargetElement(targetId, waitForTarget = true, scrollTo = true, activationDelay = 0) {
   const [element, setElement] = React6.useState(null);
   const [searching, setSearching] = React6.useState(false);
   const [timedOut, setTimedOut] = React6.useState(false);
   const observerRef = React6.useRef(null);
   const timerRef = React6.useRef(null);
+  const activationTimerRef = React6.useRef(null);
   React6.useEffect(() => {
+    if (activationTimerRef.current) clearTimeout(activationTimerRef.current);
     setElement(null);
     setSearching(false);
     setTimedOut(false);
     if (!targetId) return;
+    const activateElement = (el) => {
+      const activate = () => {
+        setElement(el);
+        setSearching(false);
+        if (scrollTo) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      };
+      if (activationDelay > 0) {
+        setSearching(true);
+        activationTimerRef.current = setTimeout(activate, activationDelay);
+        return;
+      }
+      activate();
+    };
     const found = document.querySelector(`[data-guide-id="${targetId}"]`);
     if (found) {
-      setElement(found);
-      if (scrollTo) found.scrollIntoView({ behavior: "smooth", block: "center" });
+      activateElement(found);
       return;
     }
     if (!waitForTarget) return;
@@ -338,9 +352,7 @@ function useTargetElement(targetId, waitForTarget = true, scrollTo = true) {
       if (el) {
         observerRef.current?.disconnect();
         if (timerRef.current) clearTimeout(timerRef.current);
-        setElement(el);
-        setSearching(false);
-        if (scrollTo) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        activateElement(el);
       }
     });
     observerRef.current.observe(document.body, {
@@ -357,8 +369,9 @@ function useTargetElement(targetId, waitForTarget = true, scrollTo = true) {
     return () => {
       observerRef.current?.disconnect();
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (activationTimerRef.current) clearTimeout(activationTimerRef.current);
     };
-  }, [targetId, waitForTarget, scrollTo]);
+  }, [targetId, waitForTarget, scrollTo, activationDelay]);
   return { element, searching, timedOut };
 }
 var Z_BACKDROP = 99999;
@@ -389,7 +402,8 @@ function GuideOverlay() {
   const { element, searching, timedOut } = useTargetElement(
     status === "idle" || status === "completed" || status === "cancelled" ? null : currentStep?.targetId ?? null,
     currentStep?.waitForTarget ?? true,
-    currentStep?.scrollTo ?? true
+    currentStep?.scrollTo ?? true,
+    currentStep?.action === "input" ? currentStep.delay ?? 0 : 0
   );
   const rect = useElementRect(element);
   const pad = currentStep?.highlightPadding ?? 8;

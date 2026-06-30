@@ -204,8 +204,8 @@ function StartTourButton() {
 버튼을 눌러야 진행됩니다. 첫 스텝이 아니면 “이전” 버튼이 함께 표시됩니다.
 
 **필수 필드**: `targetId`, `action`, `message`
-**선택 필드**: `tooltipPosition`, `waitForTarget`, `scrollTo`, `highlightPadding`
-**무시되는 필드**: `delay`
+**선택 필드**: `tooltipPosition`, `delay`(타깃 발견 후 하이라이트/포커스 지연), `waitForTarget`, `scrollTo`, `highlightPadding`
+**무시되는 필드**: 없음
 
 ```json
 {

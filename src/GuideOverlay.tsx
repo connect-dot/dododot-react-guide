@@ -63,6 +63,7 @@ export function GuideOverlay() {
 			: (currentStep?.targetId ?? null),
 		currentStep?.waitForTarget ?? true,
 		currentStep?.scrollTo ?? true,
+		currentStep?.action === 'input' ? (currentStep.delay ?? 0) : 0,
 	);
 
 	const rect = useElementRect(element);
