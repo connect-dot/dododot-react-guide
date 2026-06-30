@@ -353,6 +353,7 @@ function useTargetElement(targetId, waitForTarget = true, scrollTo = true, activ
 }
 var Z_BACKDROP = 99999;
 var Z_TOOLTIP = 1e5;
+var MOBILE_TOOLTIP_BREAKPOINT = 640;
 function getClipPath(rect, pad) {
   const t = rect.top - pad;
   const l = rect.left - pad;
@@ -373,8 +374,22 @@ function DefaultButton({
 }) {
   return /* @__PURE__ */ jsx(Button, { variant, onClick, children });
 }
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window === "undefined" ? false : window.innerWidth < MOBILE_TOOLTIP_BREAKPOINT
+  );
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${MOBILE_TOOLTIP_BREAKPOINT - 1}px)`);
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
 function GuideOverlay() {
   const { status, currentStep, steps, currentStepIndex, cancelable, advance, goBack, cancel, ui } = useGuide();
+  const isMobileViewport = useIsMobileViewport();
   const renderButton = ui.renderButton ? ui.renderButton : (props) => /* @__PURE__ */ jsx(DefaultButton, { ...props });
   const { element, searching, timedOut } = useTargetElement(
     status === "idle" || status === "completed" || status === "cancelled" ? null : currentStep?.targetId ?? null,
@@ -430,7 +445,7 @@ function GuideOverlay() {
     );
   }
   if (!rect) return null;
-  const tooltipPos = getTooltipPosition(rect, currentStep?.tooltipPosition ?? "auto", pad);
+  const tooltipPos = isMobileViewport ? null : getTooltipPosition(rect, currentStep?.tooltipPosition ?? "auto", pad);
   const hint = ACTION_HINTS[currentStep?.action ?? ""] ?? "";
   const isLast = currentStepIndex === steps.length - 1;
   const isFirst = currentStepIndex === 0;
@@ -449,7 +464,15 @@ function GuideOverlay() {
   };
   const tooltipStyle = {
     zIndex: Z_TOOLTIP,
-    ...tooltipPos
+    ...tooltipPos ?? {
+      position: "fixed",
+      left: 12,
+      right: 12,
+      bottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+      width: "auto",
+      maxHeight: "min(42vh, calc(100vh - 24px))",
+      overflowY: "auto"
+    }
   };
   return createPortal(
     /* @__PURE__ */ jsxs(Fragment, { children: [

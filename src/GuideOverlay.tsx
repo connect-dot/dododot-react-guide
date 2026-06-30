@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect } from 'react';
+import React, { CSSProperties, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from './components/ui/button';
@@ -10,6 +10,7 @@ import { useTargetElement } from './useTargetElement';
 
 const Z_BACKDROP = 99999;
 const Z_TOOLTIP = 100000;
+const MOBILE_TOOLTIP_BREAKPOINT = 640;
 
 function getClipPath(
 	rect: { top: number; left: number; width: number; height: number },
@@ -45,9 +46,27 @@ function DefaultButton({
 	);
 }
 
+function useIsMobileViewport() {
+	const [isMobile, setIsMobile] = useState(() =>
+		typeof window === 'undefined' ? false : window.innerWidth < MOBILE_TOOLTIP_BREAKPOINT,
+	);
+
+	useEffect(() => {
+		const media = window.matchMedia(`(max-width: ${MOBILE_TOOLTIP_BREAKPOINT - 1}px)`);
+		const update = () => setIsMobile(media.matches);
+
+		update();
+		media.addEventListener('change', update);
+		return () => media.removeEventListener('change', update);
+	}, []);
+
+	return isMobile;
+}
+
 export function GuideOverlay() {
 	const { status, currentStep, steps, currentStepIndex, cancelable, advance, goBack, cancel, ui } =
 		useGuide();
+	const isMobileViewport = useIsMobileViewport();
 
 	const renderButton = ui.renderButton
 		? ui.renderButton
@@ -125,7 +144,9 @@ export function GuideOverlay() {
 
 	if (!rect) return null;
 
-	const tooltipPos = getTooltipPosition(rect, currentStep?.tooltipPosition ?? 'auto', pad);
+	const tooltipPos = isMobileViewport
+		? null
+		: getTooltipPosition(rect, currentStep?.tooltipPosition ?? 'auto', pad);
 	const hint = ACTION_HINTS[currentStep?.action ?? ''] ?? '';
 	const isLast = currentStepIndex === steps.length - 1;
 	const isFirst = currentStepIndex === 0;
@@ -147,7 +168,15 @@ export function GuideOverlay() {
 
 	const tooltipStyle: CSSProperties = {
 		zIndex: Z_TOOLTIP,
-		...tooltipPos,
+		...(tooltipPos ?? {
+			position: 'fixed',
+			left: 12,
+			right: 12,
+			bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+			width: 'auto',
+			maxHeight: 'min(42vh, calc(100vh - 24px))',
+			overflowY: 'auto',
+		}),
 	};
 
 	return createPortal(
