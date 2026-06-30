@@ -1,0 +1,15 @@
+src
+node_modules
+tsconfig.json
+tsup.config.ts
+.gitignore
+.npmignore
+.editorconfig
+.vscode
+.idea
+*.log
+coverage
+.env
+.env.*
+.turbo
+.tsbuildinfo

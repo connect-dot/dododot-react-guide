@@ -1,0 +1,75 @@
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "올릴 버전 종류 (semver)"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@connect-dot"
+
+      - name: Install deps (and restore lockfile so npm version stays clean)
+        run: |
+          npm ci --ignore-scripts || npm install --ignore-scripts
+          # If npm install touched the lockfile, restore it from HEAD so
+          # `npm version` doesn't refuse to bump on a dirty tree.
+          git checkout -- package-lock.json 2>/dev/null || true
+          git status --porcelain
+
+      - name: Configure git (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm version ${{ inputs.version_type }} -m "chore(release): %s"
+
+      - name: Debug npmrc & env (auth token 만 검열)
+        run: |
+          echo "=== project .npmrc ==="
+          cat ./.npmrc || echo "(no project .npmrc)"
+          echo "=== user .npmrc (NPM_CONFIG_USERCONFIG) ==="
+          cat "$NPM_CONFIG_USERCONFIG" 2>/dev/null || cat ~/.npmrc || echo "(no user .npmrc)"
+          echo "=== resolved npm config (auth 라인은 마스킹) ==="
+          npm config ls -l 2>&1 | sed -E 's/(_authToken=).*/\1***MASKED***/'
+          echo "=== env (token 값은 마스킹) ==="
+          env | grep -E '^(NODE_AUTH_TOKEN|GITHUB_TOKEN|NPM_CONFIG_)' | sed -E 's/=.+/=***MASKED***/'
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push version commit & tag (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin --tags

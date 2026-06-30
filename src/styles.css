@@ -1,0 +1,309 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Font */
+    --crg-font-family:
+      "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* Primary palette (DODODOT) */
+    --crg-primary-00: #000000;
+    --crg-primary-10: #172554;
+    --crg-primary-20: #1E3A8A;
+    --crg-primary-30: #1D4ED8;
+    --crg-primary-40: #2563eb;
+    --crg-primary-50: #1d4ed8;
+    --crg-primary-60: #2563eb;
+    --crg-primary-70: #60a5fa;
+    --crg-primary-80: #93c5fd;
+    --crg-primary-90: #dbeafe;
+    --crg-primary-95: #eff6ff;
+    --crg-primary-98: #f8fafc;
+    --crg-primary-99: #fafaf9;
+    --crg-primary-100: #ffffff;
+
+    /* Gray palette (DODODOT) */
+    --crg-gray-00: #000000;
+    --crg-gray-10: #191c1d;
+    --crg-gray-20: #2e3132;
+    --crg-gray-30: #444748;
+    --crg-gray-40: #5c5f5f;
+    --crg-gray-50: #747878;
+    --crg-gray-60: #8e9192;
+    --crg-gray-70: #a9acac;
+    --crg-gray-80: #c4c7c7;
+    --crg-gray-90: #e1e3e3;
+    --crg-gray-95: #eff1f1;
+    --crg-gray-99: #fafafa;
+    --crg-gray-100: #ffffff;
+
+    /* Semantic — map DODODOT tokens onto library semantic names */
+    --crg-brand: var(--crg-primary-60);
+    --crg-brand-foreground: var(--crg-primary-100);
+    --crg-brand-hover: var(--crg-primary-50);
+    --crg-foreground: var(--crg-gray-10);
+    --crg-subtle: var(--crg-gray-40);
+    --crg-icon: var(--crg-gray-60);
+    --crg-muted: var(--crg-gray-95);
+    --crg-muted-foreground: var(--crg-gray-20);
+    --crg-border: var(--crg-gray-90);
+    --crg-surface: var(--crg-gray-100);
+    --crg-surface-alt: var(--crg-gray-99);
+    --crg-success: #10b981;
+    --crg-backdrop-opacity: 0.55;
+    --crg-highlight: #fef08a;
+    --crg-highlight-foreground: inherit;
+
+    /* Diff colors */
+    --crg-diff-ins-bg: #dcfce7;
+    --crg-diff-ins-fg: #14532d;
+    --crg-diff-mod-bg: #fef3c7;
+    --crg-diff-mod-fg: #78350f;
+    --crg-diff-del-bg: #fee2e2;
+    --crg-diff-del-fg: #7f1d1d;
+
+    /* Typography tokens (DODODOT-aligned, px-based via CSS `font` shorthand:
+       weight size/lineHeight family) — host can override per token. */
+    --crg-font-display: 700 60px/72px var(--crg-font-family);
+    --crg-font-h1: 700 48px/60px var(--crg-font-family);
+    --crg-font-h2: 700 36px/45px var(--crg-font-family);
+    --crg-font-h3: 700 24px/36px var(--crg-font-family);
+    --crg-font-h4: 700 21px/32px var(--crg-font-family);
+    --crg-font-body-b: 700 16px/28px var(--crg-font-family);
+    --crg-font-body: 500 16px/28px var(--crg-font-family);
+    --crg-font-label-b: 700 14px/24px var(--crg-font-family);
+    --crg-font-label: 500 14px/24px var(--crg-font-family);
+    --crg-font-subtitle-1: 500 18px/20px var(--crg-font-family);
+    --crg-font-subtitle-2: 500 16px/20px var(--crg-font-family);
+    --crg-font-subtitle-3: 500 14px/20px var(--crg-font-family);
+
+    /* Elevation (DODODOT-aligned) */
+    --crg-shadow-elevation-01:
+      0px 8px 8px rgba(0, 0, 0, 0.08), 0px 4px 4px rgba(0, 0, 0, 0.0675),
+      0px 2px 2px rgba(0, 0, 0, 0.05), 0px 1px 1px rgba(0, 0, 0, 0.025);
+    --crg-shadow-elevation-02:
+      0px 16px 16px rgba(0, 0, 0, 0.08), 0px 8px 8px rgba(0, 0, 0, 0.0675),
+      0px 4px 4px rgba(0, 0, 0, 0.05), 0px 2px 2px rgba(0, 0, 0, 0.025);
+    --crg-shadow-elevation-03:
+      0px 24px 24px rgba(0, 0, 0, 0.08), 0px 12px 12px rgba(0, 0, 0, 0.0675),
+      0px 8px 8px rgba(0, 0, 0, 0.05), 0px 4px 4px rgba(0, 0, 0, 0.025);
+    --crg-shadow-elevation-04:
+      0px 64px 64px rgba(0, 0, 0, 0.08), 0px 32px 32px rgba(0, 0, 0, 0.0675),
+      0px 16px 16px rgba(0, 0, 0, 0.05), 0px 8px 8px rgba(0, 0, 0, 0.025);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Chatbot scope — apply Pretendard + tabular numerics for everything  */
+/* the library renders, isolated from the host page                    */
+/* ------------------------------------------------------------------ */
+
+.crg-chatbot-root,
+.crg-chatbot-root * {
+  box-sizing: border-box;
+  font-family: var(--crg-font-family);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.crg-chatbot-root button {
+  font-family: var(--crg-font-family);
+}
+
+/* ------------------------------------------------------------------ */
+/* Existing TestHighlight                                              */
+/* ------------------------------------------------------------------ */
+
+.crg-test-highlight {
+  background-image: linear-gradient(
+    transparent 55%,
+    var(--crg-highlight, #fef08a) 55%,
+    var(--crg-highlight, #fef08a) 95%,
+    transparent 95%
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-position: 0 0;
+  color: var(--crg-highlight-foreground, inherit);
+  padding: 0 2px;
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  animation-name: crg-test-highlight-sweep;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-fill-mode: forwards;
+  animation-duration: 800ms;
+}
+
+@keyframes crg-test-highlight-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crg-test-highlight {
+    animation: none;
+    background-size: 100% 100%;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Chatbot HTML viewer                                                 */
+/* ------------------------------------------------------------------ */
+
+.crg-chatbot-html-view {
+  /* Body text uses the DODODOT `body` token */
+  font: var(--crg-font-body);
+  color: var(--crg-foreground);
+}
+
+.crg-chatbot-html-view h1 {
+  font: var(--crg-font-h1);
+  color: var(--crg-foreground);
+  margin: 0 0 16px 0;
+}
+
+.crg-chatbot-html-view h2 {
+  font: var(--crg-font-h2);
+  color: var(--crg-foreground);
+  margin: 0 0 14px 0;
+}
+
+.crg-chatbot-html-view h3 {
+  font: var(--crg-font-h3);
+  color: var(--crg-foreground);
+  margin: 0 0 12px 0;
+}
+
+.crg-chatbot-html-view h4 {
+  font: var(--crg-font-h4);
+  color: var(--crg-foreground);
+  margin: 0 0 10px 0;
+}
+
+.crg-chatbot-html-view p {
+  font: var(--crg-font-body);
+  color: var(--crg-foreground);
+  margin: 12px 0;
+}
+
+.crg-chatbot-html-view ol,
+.crg-chatbot-html-view ul {
+  margin: 14px 0;
+  padding-left: 28px;
+  color: var(--crg-foreground);
+}
+
+.crg-chatbot-html-view li {
+  font: var(--crg-font-body);
+  color: var(--crg-foreground);
+  margin: 8px 0;
+}
+
+.crg-chatbot-html-view strong,
+.crg-chatbot-html-view b {
+  font: var(--crg-font-body-b);
+  color: var(--crg-foreground);
+}
+
+.crg-chatbot-html-view em,
+.crg-chatbot-html-view i {
+  font-style: italic;
+}
+
+.crg-chatbot-html-view small {
+  font: var(--crg-font-label);
+  color: var(--crg-subtle);
+}
+
+.crg-chatbot-html-view a {
+  color: var(--crg-brand);
+  text-decoration: underline;
+}
+
+.crg-chatbot-html-view a:hover {
+  color: var(--crg-brand-hover);
+}
+
+.crg-chatbot-html-view code {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 24px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--crg-muted);
+  color: var(--crg-muted-foreground);
+}
+
+.crg-chatbot-html-view blockquote {
+  margin: 14px 0;
+  padding: 8px 16px;
+  border-left: 3px solid var(--crg-border);
+  color: var(--crg-subtle);
+  background: var(--crg-surface-alt);
+  font: var(--crg-font-body);
+}
+
+.crg-chatbot-html-view hr {
+  border: 0;
+  border-top: 1px solid var(--crg-border);
+  margin: 20px 0;
+}
+
+.crg-chatbot-html-view table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+}
+
+.crg-chatbot-html-view th,
+.crg-chatbot-html-view td {
+  border: 1px solid var(--crg-border);
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.crg-chatbot-html-view th {
+  font: var(--crg-font-label-b);
+  background: var(--crg-muted);
+  color: var(--crg-muted-foreground);
+}
+
+.crg-chatbot-html-view td {
+  font: var(--crg-font-body);
+  color: var(--crg-foreground);
+}
+
+.crg-chatbot-html-view ins.diffins,
+.crg-chatbot-html-view ins.mod {
+  background: var(--crg-diff-ins-bg);
+  color: var(--crg-diff-ins-fg);
+  text-decoration: none;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.crg-chatbot-html-view ins.diffmod {
+  background: var(--crg-diff-mod-bg);
+  color: var(--crg-diff-mod-fg);
+  text-decoration: none;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.crg-chatbot-html-view del.diffdel,
+.crg-chatbot-html-view del.diffmod {
+  background: var(--crg-diff-del-bg);
+  color: var(--crg-diff-del-fg);
+  text-decoration: line-through;
+  padding: 0 4px;
+  border-radius: 4px;
+}
