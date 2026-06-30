@@ -177,6 +177,8 @@ Button.displayName = "Button";
 
 // src/tooltipPosition.ts
 var TOOLTIP_WIDTH = 320;
+var TOOLTIP_MIN_WIDTH = 240;
+var TOOLTIP_ESTIMATED_HEIGHT = 240;
 var GAP = 12;
 var EDGE_MARGIN = 16;
 function pickBestDirection(rect) {
@@ -190,50 +192,68 @@ function pickBestDirection(rect) {
   };
   return Object.entries(spaces).sort((a, b) => b[1] - a[1])[0][0];
 }
-function clampX(x) {
+function getTooltipWidth() {
   const vw = window.innerWidth;
-  return Math.max(EDGE_MARGIN, Math.min(x, vw - TOOLTIP_WIDTH - EDGE_MARGIN));
+  return Math.min(TOOLTIP_WIDTH, Math.max(TOOLTIP_MIN_WIDTH, vw - EDGE_MARGIN * 2));
+}
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(value, max));
+}
+function clampX(x, width) {
+  const vw = window.innerWidth;
+  return clamp(x, EDGE_MARGIN, Math.max(EDGE_MARGIN, vw - width - EDGE_MARGIN));
+}
+function clampY(y) {
+  const vh = window.innerHeight;
+  return clamp(
+    y,
+    EDGE_MARGIN,
+    Math.max(EDGE_MARGIN, vh - TOOLTIP_ESTIMATED_HEIGHT - EDGE_MARGIN)
+  );
+}
+function baseStyle(width) {
+  return {
+    position: "fixed",
+    width,
+    maxHeight: `calc(100vh - ${EDGE_MARGIN * 2}px)`,
+    overflowY: "auto"
+  };
 }
 function getTooltipPosition(rect, position, padding) {
   const dir = position === "auto" ? pickBestDirection(rect) : position;
-  const centerX = rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2;
+  const width = getTooltipWidth();
+  const centerX = rect.left + rect.width / 2 - width / 2;
+  const centerY = rect.top + rect.height / 2 - TOOLTIP_ESTIMATED_HEIGHT / 2;
   switch (dir) {
     case "bottom":
       return {
-        position: "fixed",
-        top: rect.top + rect.height + padding + GAP,
-        left: clampX(centerX),
-        width: TOOLTIP_WIDTH
+        ...baseStyle(width),
+        top: clampY(rect.top + rect.height + padding + GAP),
+        left: clampX(centerX, width)
       };
     case "top":
       return {
-        position: "fixed",
-        bottom: window.innerHeight - rect.top + padding + GAP,
-        left: clampX(centerX),
-        width: TOOLTIP_WIDTH
+        ...baseStyle(width),
+        top: clampY(rect.top - padding - GAP - TOOLTIP_ESTIMATED_HEIGHT),
+        left: clampX(centerX, width)
       };
     case "right":
       return {
-        position: "fixed",
-        top: rect.top + rect.height / 2,
-        left: rect.left + rect.width + padding + GAP,
-        width: TOOLTIP_WIDTH,
-        transform: "translateY(-50%)"
+        ...baseStyle(width),
+        top: clampY(centerY),
+        left: clampX(rect.left + rect.width + padding + GAP, width)
       };
     case "left":
       return {
-        position: "fixed",
-        top: rect.top + rect.height / 2,
-        left: rect.left - padding - GAP - TOOLTIP_WIDTH,
-        width: TOOLTIP_WIDTH,
-        transform: "translateY(-50%)"
+        ...baseStyle(width),
+        top: clampY(centerY),
+        left: clampX(rect.left - padding - GAP - width, width)
       };
     default:
       return {
-        position: "fixed",
-        top: rect.top + rect.height + padding + GAP,
-        left: clampX(centerX),
-        width: TOOLTIP_WIDTH
+        ...baseStyle(width),
+        top: clampY(rect.top + rect.height + padding + GAP),
+        left: clampX(centerX, width)
       };
   }
 }

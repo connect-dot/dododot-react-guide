@@ -3,6 +3,8 @@ import { CSSProperties } from 'react';
 import { TooltipPosition } from './types';
 
 const TOOLTIP_WIDTH = 320;
+const TOOLTIP_MIN_WIDTH = 240;
+const TOOLTIP_ESTIMATED_HEIGHT = 240;
 const GAP = 12;
 const EDGE_MARGIN = 16;
 
@@ -28,9 +30,36 @@ function pickBestDirection(rect: Rect): Exclude<TooltipPosition, 'auto'> {
 	>;
 }
 
-function clampX(x: number): number {
+function getTooltipWidth(): number {
 	const vw = window.innerWidth;
-	return Math.max(EDGE_MARGIN, Math.min(x, vw - TOOLTIP_WIDTH - EDGE_MARGIN));
+	return Math.min(TOOLTIP_WIDTH, Math.max(TOOLTIP_MIN_WIDTH, vw - EDGE_MARGIN * 2));
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(value, max));
+}
+
+function clampX(x: number, width: number): number {
+	const vw = window.innerWidth;
+	return clamp(x, EDGE_MARGIN, Math.max(EDGE_MARGIN, vw - width - EDGE_MARGIN));
+}
+
+function clampY(y: number): number {
+	const vh = window.innerHeight;
+	return clamp(
+		y,
+		EDGE_MARGIN,
+		Math.max(EDGE_MARGIN, vh - TOOLTIP_ESTIMATED_HEIGHT - EDGE_MARGIN),
+	);
+}
+
+function baseStyle(width: number): CSSProperties {
+	return {
+		position: 'fixed',
+		width,
+		maxHeight: `calc(100vh - ${EDGE_MARGIN * 2}px)`,
+		overflowY: 'auto',
+	};
 }
 
 export function getTooltipPosition(
@@ -39,45 +68,40 @@ export function getTooltipPosition(
 	padding: number,
 ): CSSProperties {
 	const dir = position === 'auto' ? pickBestDirection(rect) : position;
-	const centerX = rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2;
+	const width = getTooltipWidth();
+	const centerX = rect.left + rect.width / 2 - width / 2;
+	const centerY = rect.top + rect.height / 2 - TOOLTIP_ESTIMATED_HEIGHT / 2;
 
 	switch (dir) {
 		case 'bottom':
 			return {
-				position: 'fixed',
-				top: rect.top + rect.height + padding + GAP,
-				left: clampX(centerX),
-				width: TOOLTIP_WIDTH,
+				...baseStyle(width),
+				top: clampY(rect.top + rect.height + padding + GAP),
+				left: clampX(centerX, width),
 			};
 		case 'top':
 			return {
-				position: 'fixed',
-				bottom: window.innerHeight - rect.top + padding + GAP,
-				left: clampX(centerX),
-				width: TOOLTIP_WIDTH,
+				...baseStyle(width),
+				top: clampY(rect.top - padding - GAP - TOOLTIP_ESTIMATED_HEIGHT),
+				left: clampX(centerX, width),
 			};
 		case 'right':
 			return {
-				position: 'fixed',
-				top: rect.top + rect.height / 2,
-				left: rect.left + rect.width + padding + GAP,
-				width: TOOLTIP_WIDTH,
-				transform: 'translateY(-50%)',
+				...baseStyle(width),
+				top: clampY(centerY),
+				left: clampX(rect.left + rect.width + padding + GAP, width),
 			};
 		case 'left':
 			return {
-				position: 'fixed',
-				top: rect.top + rect.height / 2,
-				left: rect.left - padding - GAP - TOOLTIP_WIDTH,
-				width: TOOLTIP_WIDTH,
-				transform: 'translateY(-50%)',
+				...baseStyle(width),
+				top: clampY(centerY),
+				left: clampX(rect.left - padding - GAP - width, width),
 			};
 		default:
 			return {
-				position: 'fixed',
-				top: rect.top + rect.height + padding + GAP,
-				left: clampX(centerX),
-				width: TOOLTIP_WIDTH,
+				...baseStyle(width),
+				top: clampY(rect.top + rect.height + padding + GAP),
+				left: clampX(centerX, width),
 			};
 	}
 }
